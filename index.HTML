@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>النظام المتكامل - الإصدار النهائي</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: white;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        .control-bar {
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 100px;
+            margin: 15px 0;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            background-color: white;
+        }
+
+        button {
+            padding: 12px 25px;
+            background-color: #217346;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+            background-color: white;
+            border: 2px solid #e0e0e0;
+        }
+
+        th, td {
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            min-width: 100px;
+            text-align: center;
+            background-color: white;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .header-cell {
+            background-color: #217346;
+            color: white;
+            font-weight: bold;
+        }
+
+        .info-box {
+            position: absolute;
+            background: white;
+            border: 1px solid #ccc;
+            padding: 10px;
+            z-index: 1000;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            min-width: 200px;
+            text-align: right;
+        }
+
+        .word-stats {
+            font-size: 0.8em;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="control-bar">
+            <button onclick="distributeText()">توزيع النص</button>
+            <button onclick="clearAll()">مسح الكل</button>
+            <input type="number" id="fontSize" value="14" min="10" max="24">
+        </div>
+
+        <textarea id="inputText" placeholder="أدخل النص هنا..."></textarea>
+
+        <table>
+            <tr>
+                <th class="header-cell">F</th>
+                <th class="header-cell">E</th>
+                <th class="header-cell">D</th>
+                <th class="header-cell">C</th>
+                <th class="header-cell">B</th>
+                <th class="header-cell">A</th>
+            </tr>
+            <tbody id="mainTable"></tbody>
+        </table>
+    </div>
+
+    <script>
+        let wordCounter = 1;
+        let wordStatistics = {};
+        const abjadValues = {
+            'أ': 1, 'ب': 2, 'ج': 3, 'د': 4, 'ه': 5, 'و': 6,
+            'ز': 7, 'ح': 8, 'ط': 9, 'ي': 10, 'ك': 20, 'ل': 30,
+            'م': 40, 'ن': 50, 'س': 60, 'ع': 70, 'ف': 80, 'ص': 90,
+            'ق': 100, 'ر': 200, 'ش': 300, 'ت': 400, 'ث': 500, 'خ': 600,
+            'ذ': 700, 'ض': 800, 'ظ': 900, 'غ': 1000
+        };
+
+        function calculateAbjad(word) {
+            return [...word].reduce((sum, char) => sum + (abjadValues[char] || 0), 0);
+        }
+
+        function createWordElement(word) {
+            const div = document.createElement('div');
+            div.className = 'word-container';
+            
+            // إحصائيات الكلمة
+            wordStatistics[word] = (wordStatistics[word] || 0) + 1;
+            
+            div.innerHTML = `
+                ${word}
+                <div class="word-stats">
+                    الترتيب: ${wordCounter++}<br>
+                    التكرار: ${wordStatistics[word]}
+                </div>
+            `;
+            
+            div.onclick = (e) => showWordInfo(e, word);
+            return div;
+        }
+
+        function showWordInfo(event, word) {
+            const infoBox = document.createElement('div');
+            infoBox.className = 'info-box';
+            infoBox.innerHTML = `
+                <h3>تقرير مفصل:</h3>
+                <p>الكلمة: ${word}</p>
+                <p>عدد الحروف: ${word.length}</p>
+                <p>حساب الجمل: ${calculateAbjad(word)}</p>
+                <p>التكرار في النص: ${wordStatistics[word]}</p>
+                <p>الاسم الإلهي: ${getDivineName(word)}</p>
+                <p>البرج: ${getZodiac(word)}</p>
+            `;
+            
+            infoBox.style.top = `${event.pageY + 10}px`;
+            infoBox.style.left = `${event.pageX - 200}px`;
+            
+            document.body.appendChild(infoBox);
+            setTimeout(() => infoBox.remove(), 5000);
+        }
+
+        // بيانات مساعدة
+        const divineNames = [
+            "الله", "الرحمن", "الرحيم", "الملك", "القدوس", "السلام", "المؤمن", "المهيمن",
+            "العزيز", "الجبار", "المتكبر", "الخالق", "البارئ", "المصور", "الغفار",
+            "القهار", "الوهاب", "الرزاق", "الفتاح", "العليم", "القابض", "الباسط",
+            "الخافض", "الرافع", "المعز", "المذل", "السميع", "البصير", "الحكم",
+            "العدل", "اللطيف", "الخبير", "الحليم", "العظيم", "الغفور", "الشكور",
+            "العلي", "الكبير", "الحفيظ", "المقيت", "الحسيب", "الجليل", "الكريم",
+            "الرقيب", "المجيب", "الواسع", "الحكيم", "الودود", "المجيد", "الباعث",
+            "الشهيد", "الحق", "الوكيل", "القوي", "المتين", "الولي", "الحميد",
+            "المحصي", "المبدئ", "المعيد", "المحيي", "المميت", "الحي", "القيوم",
+            "الواجد", "الماجد", "الواحد", "الصمد", "القادر", "المقتدر", "المقدم",
+            "المؤخر", "الأول", "الآخر", "الظاهر", "الباطن", "الوالي", "المتعالي",
+            "البر", "التواب", "المنتقم", "العفو", "الرؤوف", "مالك الملك", "ذو الجلال والإكرام",
+            "المقسط", "الجامع", "الغني", "المغني", "المانع", "الضار", "النافع",
+            "النور", "الهادي", "البديع", "الباقي", "الوارث", "الرشيد", "الصبور"];
+        const zodiacSigns = ["الحمل", "الثور", "الجوزاء", "السرطان", "الأسد", "العذراء", "الميزان", "العقرب", "القوس", "الجدي", "الدلو", "الحوت",];
+        
+        function getDivineName(word) {
+            const index = word.length % divineNames.length;
+            return divineNames[index];
+        }
+
+        function getZodiac(word) {
+            const index = calculateAbjad(word) % zodiacSigns.length;
+            return zodiacSigns[index];
+        }
+
+        function distributeText() {
+            const words = document.getElementById('inputText').value.split(/\s+/);
+            const mainTable = document.getElementById('mainTable');
+            mainTable.innerHTML = '';
+
+            words.forEach((word, index) => {
+                if(index % 6 === 0) {
+                    const row = document.createElement('tr');
+                    mainTable.appendChild(row);
+                }
+                
+                const cell = document.createElement('td');
+                cell.appendChild(createWordElement(word));
+                mainTable.lastChild.appendChild(cell);
+            });
+        }
+
+        function clearAll() {
+            wordCounter = 1;
+            wordStatistics = {};
+            document.getElementById('inputText').value = '';
+            document.getElementById('mainTable').innerHTML = '';
+        }
+
+        document.getElementById('fontSize').addEventListener('change', function() {
+            document.body.style.fontSize = this.value + 'px';
+        });
+    </script>
+    <!-- قسم المصادر التعليمية -->
+<div class="edu-resources" style="
+margin: 40px 0;
+padding: 25px;
+background: #f8fafa;
+border-radius: 12px;
+box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+border: 1px solid #e0f0e9;
+">
+<h2 style="
+    color: #217346;
+    font-family: 'Cairo', sans-serif;
+    border-bottom: 3px solid #217346;
+    padding-bottom: 12px;
+    margin-bottom: 25px;
+">
+    📚 مصادر علمية ودعوة للمشاهدة
+</h2>
+
+<div class="resources-grid" style="
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+">
+    <!-- موقع طريق القرآن -->
+    <a href="https://www.quranway.com/" 
+       target="_blank"
+       class="resource-card"
+       style="
+           background: white;
+           padding: 20px;
+           border-radius: 8px;
+           text-decoration: none;
+           color: #2c3e50;
+           transition: all 0.3s;
+           border: 1px solid #e0e0e0;
+       "
+       onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 20px rgba(0,0,0,0.1)'"
+       onmouseout="this.style.transform='none'; this.style.boxShadow='none'">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <span style="font-size: 24px;">🕌</span>
+            <div>
+                <h3 style="margin: 0; color: #217346;">طريق القرآن</h3>
+                <p style="margin: 5px 0 0; font-size: 0.9em;">موقع متكامل لخدمة القرآن الكريم</p>
+            </div>
+        </div>
+    </a>
+
+    <!-- قناة الدكتور الكحيل -->
+    <a href="https://www.youtube.com/@kaheel777" 
+       target="_blank"
+       class="resource-card"
+       style="/* نفس تنسيق البطاقة السابقة */">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <span style="font-size: 24px;">🧠</span>
+            <div>
+                <h3 style="margin: 0; color: #217346;">د. عبد الدائم الكحيل</h3>
+                <p style="margin: 5px 0 0; font-size: 0.9em;">إعجاز علمي في القرآن والسنة</p>
+            </div>
+        </div>
+    </a>
+
+    <!-- محاضرة مصير الشمس -->
+    <a href="https://www.youtube.com/watch?v=UeaXzIZL9kc&t=38s" 
+       target="_blank"
+       class="resource-card"
+       style="/* نفس تنسيق البطاقة السابقة */">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <span style="font-size: 24px;">☀️</span>
+            <div>
+                <h3 style="margin: 0; color: #217346;">مصير الشمس - د. باسل الطائي</h3>
+                <p style="margin: 5px 0 0; font-size: 0.9em;">رحلة علمية في الكون</p>
+            </div>
+        </div>
+    </a>
+
+    <!-- دعوة للمشاهدة -->
+    <div class="call-to-action" style="
+        background: #217346;
+        padding: 25px;
+        border-radius: 8px;
+        grid-column: 1 / -1;
+        text-align: center;
+    ">
+        <h3 style="color: white; margin: 0 0 15px;">
+            🕌 ندعوكم لمشاهدة سلسلة "الفرقان العظيم"
+        </h3>
+        <a href="https://www.youtube.com/watch?v=wiHKls5ULMQ&t=7s" 
+           target="_blank"
+           style="
+               background: white;
+               color: #217346;
+               padding: 12px 30px;
+               border-radius: 25px;
+               text-decoration: none;
+               font-weight: bold;
+               display: inline-block;
+               transition: 0.3s;
+           "
+           onmouseover="this.style.transform='scale(1.05)'"
+           onmouseout="this.style.transform='none'">
+           ▶️ شاهد الآن
+        </a>
+    </div>
+</div>
+</div>
+</body>
+</html>
